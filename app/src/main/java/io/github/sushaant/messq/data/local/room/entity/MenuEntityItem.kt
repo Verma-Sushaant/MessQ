@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "cached_menus")
-data class MenuEntityItem(
+data class MenuItemEntity(
     @PrimaryKey val id: String,
     val name: String,
     val category: String,
