@@ -5,21 +5,10 @@ import io.github.sushaant.messq.common.Resource
 import io.github.sushaant.messq.common.safeApiCall
 import io.github.sushaant.messq.data.local.room.dao.MenuDao
 import io.github.sushaant.messq.data.local.room.entity.MenuItemEntity
+import io.github.sushaant.messq.data.model.MenuDto
 import io.github.sushaant.messq.data.remote.SupabaseClientInstance
 import io.github.sushaant.messq.domain.repository.MenuRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class MenuDto(
-    val id: String,
-    val name: String,
-    val category: String,
-    val description: String? = null,
-    val calories: Int? = null,
-    val protein_grams: Double? = null,
-    val is_available: Boolean = true
-)
 
 class MenuRepositoryImpl(
     private val menuDao: MenuDao
