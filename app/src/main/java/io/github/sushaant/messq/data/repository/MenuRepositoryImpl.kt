@@ -8,7 +8,9 @@ import io.github.sushaant.messq.data.local.room.entity.MenuItemEntity
 import io.github.sushaant.messq.data.remote.SupabaseClientInstance
 import io.github.sushaant.messq.domain.repository.MenuRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class MenuDto(
     val id: String,
     val name: String,
@@ -29,7 +31,7 @@ class MenuRepositoryImpl(
 
     override suspend fun refreshMenusFromCloud(): Resource<Unit> {
         return safeApiCall {
-            // Fetch remote rows from Supabase table 'menu_items
+            // Fetch remote rows from Supabase table 'menu_items'
             val response = SupabaseClientInstance.client
                 .from("menu_items")
                 .select()
