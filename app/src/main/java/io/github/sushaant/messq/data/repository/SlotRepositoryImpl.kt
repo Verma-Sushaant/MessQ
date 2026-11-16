@@ -7,6 +7,8 @@ import io.github.sushaant.messq.data.model.SlotBookingInsertDto
 import io.github.sushaant.messq.data.model.SlotDto
 import io.github.sushaant.messq.data.remote.SupabaseClientInstance
 import io.github.sushaant.messq.domain.repository.SlotRepository
+import io.github.sushaant.messq.exception.MessQException
+import kotlinx.serialization.Serializable
 
 class SlotRepositoryImpl : SlotRepository {
 
@@ -23,7 +25,22 @@ class SlotRepositoryImpl : SlotRepository {
 
     override suspend fun bookSlot(userId: String, slotId: String, slotDate: String, slotTime: String): Resource<Unit> {
         return safeApiCall {
-            // Insert booking record into 'slot_bookings'
+            // Verify capacity before attempting insert
+            @Serializable
+            data class SlotCapacityCheck(val max_capacity: Int, val current_booked_count: Int)
+
+            val slotInfo = SupabaseClientInstance.client
+                .from("slots")
+                .select {
+                    filter { eq("id", slotId) }
+                }
+                .decodeSingle<SlotCapacityCheck>()
+
+            if (slotInfo.current_booked_count >= slotInfo.max_capacity) {
+                throw MessQException.DatabaseException("Selected slot is completely full.")
+            }
+
+            // Insert booking record (Supabase Trigger automatically increments current_booked_count!)
             SupabaseClientInstance.client
                 .from("slot_bookings")
                 .insert(
@@ -33,9 +50,6 @@ class SlotRepositoryImpl : SlotRepository {
                         slot_time = slotTime
                     )
                 )
-
-            // Note: Supabase atomic RPC (Remote Procedure Call) or trigger
-            // should ideally increment 'current_booked_count' in 'slots' table.
 
             Unit
         }
@@ -48,18 +62,25 @@ class SlotRepositoryImpl : SlotRepository {
         newEndTime: String
     ): Resource<Unit> {
         return safeApiCall {
-            // Staff-only operation governed by RLS policies
+            // Staff-only operation to modify slot timings or capacity (e.g., weekend extensions)
+            @Serializable
+            data class SlotUpdateDto(
+                val max_capacity: Int,
+                val start_time: String,
+                val end_time: String
+            )
+
             SupabaseClientInstance.client
                 .from("slots")
                 .update(
-                    {
-                        // Pass updated fields mapping your Supabase table schema
-                        // e.g., max_capacity = newMaxCapacity, etc.
-                    }
+                    SlotUpdateDto(
+                        max_capacity = newMaxCapacity,
+                        start_time = newStartTime,
+                        end_time = newEndTime
+                    )
                 ) {
                     filter { eq("id", slotId) }
                 }
-
             Unit
         }
     }
