@@ -1,6 +1,8 @@
 package io.github.sushaant.messq.data.repository
 
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 import io.github.sushaant.messq.common.Resource
 import io.github.sushaant.messq.common.safeApiCall
 import io.github.sushaant.messq.data.model.SlotBookingInsertDto
@@ -82,6 +84,25 @@ class SlotRepositoryImpl : SlotRepository {
                     filter { eq("id", slotId) }
                 }
             Unit
+        }
+    }
+
+    override suspend fun processStudentCheckIn(userId: String, slotDate: String, slotTime: String): Resource<String> {
+        return safeApiCall {
+            @Serializable
+            data class RpcParams(
+                val p_user_id: String,
+                val p_slot_date: String,
+                val p_slot_time: String
+            )
+
+            // Calls your PostgreSQL function 'process_student_checkin'
+            val result = SupabaseClientInstance.client
+                .postgrest
+                .rpc("process_student_checkin", RpcParams(userId, slotDate, slotTime))
+                .decodeAs<String>()
+
+            result
         }
     }
 }
