@@ -24,6 +24,7 @@ ksp = "2.3.2" # "2.4.21-1.0.31" # Must match your Kotlin version (2.4.21)
 zxing = "3.5.4"
 mlkit-barcode-scanning = "17.3.0"
 camerax = "1.6.2"
+remoteCreationCore = "1.0.0-alpha23"
 
 [libraries]
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
@@ -65,6 +66,7 @@ supabase-auth = { group = "io.github.jan-tennert.supabase", name = "auth-kt" }
 supabase-functions = { group = "io.github.jan-tennert.supabase", name = "functions-kt" }
 ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
+androidx-compose-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
