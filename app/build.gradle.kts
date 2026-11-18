@@ -90,6 +90,17 @@ dependencies {
     // --- Jetpack DataStore (Preferences) ---
     implementation(libs.datastore.preferences)
 
+    // QR Code Generation (ZXing Core)
+    implementation(libs.zxing.core)
+
+    // QR Code Scanning (Google ML Kit Barcode Scanning)
+    implementation(libs.mlkit.barcode.scanning)
+
+    // CameraX for QR Scanning Preview & Analysis
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
