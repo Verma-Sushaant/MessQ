@@ -14,7 +14,7 @@ class UserPreferencesManager(context: Context) {
 
     companion object {
         val USER_TOKEN_KEY = stringPreferencesKey("user_token")
-        val USER_ROLE_KEY = stringPreferencesKey("user_role") // "student" or "admin"
+        val USER_ROLE_KEY = stringPreferencesKey("user_role") // "student" or "staff"
     }
 
     val userToken: Flow<String?> = appContext.dataStore.data

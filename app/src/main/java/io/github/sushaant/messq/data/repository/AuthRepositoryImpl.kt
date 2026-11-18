@@ -13,13 +13,13 @@ import kotlinx.serialization.Serializable
 
 class AuthRepositoryImpl(
     private val preferencesManager: UserPreferencesManager
-): AuthRepository {
+) : AuthRepository {
 
-    override suspend fun login(email: String, password: String): Resource<Unit> {
+    override suspend fun login(email: String, pass: String): Resource<Unit> {
         return safeApiCall {
             SupabaseClientInstance.client.auth.signInWith(Email) {
                 this.email = email
-                this.password = password
+                this.password = pass
             }
 
             // Retrieve session token after successful login
@@ -27,7 +27,7 @@ class AuthRepositoryImpl(
                 ?: throw MessQException.AuthException("Session could not be established.")
             val userId = session.user?.id ?: throw MessQException.AuthException("User ID not found.")
 
-            // Fetching the actual role from Supabase 'profiles' table (matching the database schema)
+            // Fetch the actual role from Supabase 'profiles' table
             @Serializable
             data class UserProfileDto(val role: String)
 
@@ -38,7 +38,7 @@ class AuthRepositoryImpl(
                 }
                 .decodeSingle<UserProfileDto>()
 
-            // Saving role to DataStore
+            // Save real session token & role to DataStore
             preferencesManager.saveUserSession(session.accessToken, profile.role)
 
             Unit
@@ -47,43 +47,45 @@ class AuthRepositoryImpl(
 
     override suspend fun signUp(
         email: String,
-        password: String,
+        pass: String,
         fullName: String,
         rollNumber: String?,
         role: String
     ): Resource<Unit> {
         return safeApiCall {
-            // Register user with Supabase Auth
+            // 1. Register user with Supabase Auth
             SupabaseClientInstance.client.auth.signUpWith(Email) {
                 this.email = email
-                this.password = password
+                this.password = pass
             }
 
-            // Get the newly created user's ID from the session
+            // 2. Get the newly created user's session & ID
             val session = SupabaseClientInstance.client.auth.currentSessionOrNull()
                 ?: throw MessQException.AuthException("Sign up successful, but session could not be established.")
             val userId = session.user?.id ?: throw MessQException.AuthException("User ID not found after sign up.")
 
-            // Define DTO to match your 'profiles' table columns
+            // 3. Insert profile record with selected role into 'profiles' table
             @Serializable
             data class ProfileInsertDto(
                 val id: String,
                 val full_name: String,
-                val roll_number: String?, // Nullable for staff, required for students
+                val roll_number: String?,
                 val role: String
             )
 
-            // Write the role into public 'profiles' table on Supabase
             SupabaseClientInstance.client
                 .from("profiles")
                 .insert(
                     ProfileInsertDto(
                         id = userId,
                         full_name = fullName,
-                        roll_number = if (role == "student") rollNumber else null, // Staff don't need roll numbers
+                        roll_number = if (role == "student") rollNumber else null,
                         role = role
                     )
                 )
+
+            // 4. Save real session token & role locally so user is logged in immediately
+            preferencesManager.saveUserSession(session.accessToken, role)
 
             Unit
         }
