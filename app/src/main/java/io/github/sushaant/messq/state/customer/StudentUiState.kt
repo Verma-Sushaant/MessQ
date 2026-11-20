@@ -1,4 +1,4 @@
-package io.github.sushaant.messq.state
+package io.github.sushaant.messq.state.customer
 
 import io.github.sushaant.messq.data.local.room.entity.MenuItemEntity
 import io.github.sushaant.messq.data.model.AiPredictionDto
@@ -8,6 +8,7 @@ data class StudentUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val successMessage: String? = null,
+    val checkInResult: String? = null,
 
     // Live Slots & Menu
     val availableSlots: List<SlotDto> = emptyList(),
@@ -16,6 +17,6 @@ data class StudentUiState(
     // AI Prediction & Crowd
     val latestAiPrediction: AiPredictionDto? = null,
 
-    // QR Pass Data (Generated upon successful booking)
+    // Active Booking / Pass Info
     val activePassData: String? = null
 )
