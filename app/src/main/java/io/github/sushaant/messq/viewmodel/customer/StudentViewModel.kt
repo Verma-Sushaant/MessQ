@@ -9,6 +9,7 @@ import io.github.sushaant.messq.data.model.SlotDto
 import io.github.sushaant.messq.domain.repository.CrowdRepository
 import io.github.sushaant.messq.domain.repository.MenuRepository
 import io.github.sushaant.messq.domain.repository.SlotRepository
+import io.github.sushaant.messq.domain.repository.AuthRepository
 import io.github.sushaant.messq.state.customer.StudentUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,7 @@ import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 class StudentViewModel(
+    private val authRepository: AuthRepository,
     private val slotRepository: SlotRepository,
     private val menuRepository: MenuRepository,
     private val crowdRepository: CrowdRepository
@@ -29,14 +31,15 @@ class StudentViewModel(
     private val _uiState = MutableStateFlow(StudentUiState())
     val uiState: StateFlow<StudentUiState> = _uiState.asStateFlow()
 
+    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+
     init {
         loadStudentDashboardData(currentDateString())
     }
 
     fun currentDateString(): String = LocalDate.now().toString()
 
-    fun currentTimeString(): String =
-        LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:00"))
+    fun currentTimeString(): String = LocalTime.now().format(timeFormatter)
 
     fun loadStudentDashboardData(date: String = currentDateString()) {
         viewModelScope.launch {
@@ -44,7 +47,7 @@ class StudentViewModel(
 
             when (val slotResult = slotRepository.getSlotsForDate(date)) {
                 is Resource.Success -> {
-                    _uiState.update { it.copy(availableSlots = slotResult.data) }
+                    _uiState.update { it.copy(availableSlots = slotResult.data.sortedBy { s -> s.start_time }) }
                 }
                 is Resource.Error -> {
                     _uiState.update {
@@ -72,8 +75,14 @@ class StudentViewModel(
         }
     }
 
-    fun bookSlot(userId: String, slot: SlotDto) {
+    fun bookSlot(slot: SlotDto, explicitUserId: String? = null) {
         viewModelScope.launch {
+            val userId = explicitUserId ?: authRepository.getCurrentUserId()
+            if (userId.isNullOrBlank()) {
+                _uiState.update { it.copy(errorMessage = "Please sign in again to book a slot.") }
+                return@launch
+            }
+
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             when (val result = slotRepository.bookSlot(userId, slot.id, slot.slot_date, slot.start_time)) {
                 is Resource.Success -> {
@@ -81,7 +90,7 @@ class StudentViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            successMessage = "Slot booked (${slot.meal_type} • ${slot.start_time})",
+                            successMessage = "Booked ${slot.meal_type} (${slot.start_time})",
                             activePassData = passPayload
                         )
                     }
@@ -101,28 +110,34 @@ class StudentViewModel(
     }
 
     /**
-     * Parses Staff/Gate QR payload: MESSQ|<GATE>|<SLOT_DATE>|<SLOT_TIME>
-     * Falls back to dynamic device date & time if fields are omitted.
+     * Reads slot_date & slot_time from Staff QR (MESSQ|<GATE>|<SLOT_DATE>|<SLOT_TIME>),
+     * falling back to device current date/time if omitted.
      */
-    fun onStaffQrScanned(rawPayload: String, userId: String) {
-        val parts = rawPayload.trim().split("|")
-        if (parts.isEmpty() || parts[0] != "MESSQ") {
-            _uiState.update { it.copy(errorMessage = "Invalid MessQ QR code.") }
-            return
-        }
-
-        val slotDate = parts.getOrNull(2)?.takeIf { it.isNotBlank() } ?: currentDateString()
-        val slotTime = parts.getOrNull(3)?.takeIf { it.isNotBlank() } ?: currentTimeString()
-
+    fun onStaffQrScanned(rawPayload: String, explicitUserId: String? = null) {
         viewModelScope.launch {
+            val userId = explicitUserId ?: authRepository.getCurrentUserId()
+            if (userId.isNullOrBlank()) {
+                _uiState.update { it.copy(errorMessage = "User session not found. Please log in again.") }
+                return@launch
+            }
+
+            val parts = rawPayload.trim().split("|")
+            if (parts.isEmpty() || parts[0] != "MESSQ") {
+                _uiState.update { it.copy(errorMessage = "Invalid MessQ QR code.") }
+                return@launch
+            }
+
+            val slotDate = parts.getOrNull(2)?.takeIf { it.isNotBlank() } ?: currentDateString()
+            val slotTime = parts.getOrNull(3)?.takeIf { it.isNotBlank() } ?: currentTimeString()
+
             _uiState.update { it.copy(isLoading = true, errorMessage = null, checkInResult = null) }
             when (val result = slotRepository.processStudentCheckIn(userId, slotDate, slotTime)) {
                 is Resource.Success -> {
                     val message = when (result.data) {
-                        "SUCCESS_BOOKED_CHECKIN" -> "Entry verified for booked slot ($slotTime)!"
-                        "SUCCESS_WALKIN_LOGGED" -> "Walk-in recorded & checked in ($slotTime)!"
-                        "ERROR_SLOT_FULL" -> "Slot capacity is full."
-                        "ERROR_NO_ACTIVE_SLOT" -> "No active slot found for $slotDate at $slotTime."
+                        "SUCCESS_BOOKED_CHECKIN" -> "Checked in for booked slot ($slotTime)"
+                        "SUCCESS_WALKIN_LOGGED" -> "Walk-in recorded & checked in ($slotTime)"
+                        "ERROR_SLOT_FULL" -> "Slot capacity is full"
+                        "ERROR_NO_ACTIVE_SLOT" -> "No active slot found for $slotDate at $slotTime"
                         else -> result.data
                     }
                     _uiState.update {
@@ -152,7 +167,7 @@ class StudentViewModel(
 
         if (res is Resource.Success) {
             _uiState.update {
-                it.copy(availableSlots = res.data)
+                it.copy(availableSlots = res.data.sortedBy { s -> s.start_time })
             }
         }
     }

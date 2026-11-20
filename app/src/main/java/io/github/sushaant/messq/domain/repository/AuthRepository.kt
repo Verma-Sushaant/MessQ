@@ -18,4 +18,5 @@ interface AuthRepository {
         role: String
     ): Resource<Unit>
     suspend fun logout(): Resource<Unit>
+    suspend fun getCurrentUserId(): String?
 }

@@ -91,6 +91,10 @@ class AuthRepositoryImpl(
         }
     }
 
+    override suspend fun getCurrentUserId(): String? {
+        return SupabaseClientInstance.client.auth.currentUserOrNull()?.id
+    }
+
     override suspend fun logout(): Resource<Unit> {
         return safeApiCall {
             SupabaseClientInstance.client.auth.signOut()
