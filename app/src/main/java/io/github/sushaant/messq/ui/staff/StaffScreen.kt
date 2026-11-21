@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,12 +23,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import io.github.sushaant.messq.data.model.SlotDto
 import io.github.sushaant.messq.state.staff.StaffUiState
 import io.github.sushaant.messq.ui.theme.MessQTheme
+import io.github.sushaant.messq.ui.theme.MonotypeCorsiva
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +39,7 @@ fun StaffScreen(
     onSelectSlotForQr: (SlotDto) -> Unit,
     onResetAutoSlot: () -> Unit,
     onUpdateSlotConfig: (slot: SlotDto, maxCap: Int, startTime: String, endTime: String) -> Unit,
+    onSaveMenuItem: (existingId: String?, name: String, category: String, description: String?) -> Unit,
     onRefreshData: () -> Unit,
     onClearMessages: () -> Unit,
     onLogout: () -> Unit
@@ -99,10 +103,12 @@ fun StaffScreen(
                                 withStyle(
                                     SpanStyle(
                                         color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.ExtraBold
+                                        fontFamily = MonotypeCorsiva,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 28.sp
                                     )
                                 ) {
-                                    append("MessQ")
+                                    append("MessQ ")
                                 }
                                 withStyle(
                                     SpanStyle(
@@ -152,7 +158,8 @@ fun StaffScreen(
                 val navItems = listOf(
                     Triple(StaffRoute.GateQr, "Gate QR", Icons.Default.QrCode2),
                     Triple(StaffRoute.Slots, "Slots", Icons.Default.Schedule),
-                    Triple(StaffRoute.Crowd, "Crowd & AI", Icons.Default.Analytics)
+                    Triple(StaffRoute.Menu, "Menu", Icons.Default.RestaurantMenu),
+                    Triple(StaffRoute.Crowd, "Crowd", Icons.Default.Analytics)
                 )
                 val itemColors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -213,7 +220,8 @@ fun StaffScreen(
                     uiState = uiState,
                     onSelectSlotForQr = onSelectSlotForQr,
                     onResetAutoSlot = onResetAutoSlot,
-                    onUpdateSlotConfig = onUpdateSlotConfig
+                    onUpdateSlotConfig = onUpdateSlotConfig,
+                    onSaveMenuItem = onSaveMenuItem
                 )
             }
         }
@@ -232,10 +240,10 @@ fun ShowStaffScreen() {
             onSelectSlotForQr = {},
             onResetAutoSlot = {},
             onUpdateSlotConfig = { _, _, _, _ -> },
+            onSaveMenuItem = { _, _, _, _ -> },
             onRefreshData = {},
             onClearMessages = {},
             onLogout = {}
         )
     }
 }
-
