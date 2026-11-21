@@ -2,9 +2,11 @@ package io.github.sushaant.messq.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import io.github.sushaant.messq.R
 
 // Set of Material typography styles to start with
 val Typography = Typography(
@@ -31,4 +33,11 @@ val Typography = Typography(
         letterSpacing = 0.5.sp
     )
     */
+)
+
+val MonotypeCorsiva = FontFamily(
+    Font(R.font.monotype_corsiva_regular, FontWeight.Normal),
+    Font(R.font.monotype_corsiva_regular_italic, FontWeight.Normal),
+    Font(R.font.monotype_corsiva_bold_italic, FontWeight.SemiBold),
+    Font(R.font.monotype_corsiva_bold, FontWeight.Bold)
 )
