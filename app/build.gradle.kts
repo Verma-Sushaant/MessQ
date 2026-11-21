@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.compose.material.icons.extended)
 
     // Navigation & ViewModel (Catalog format)
     implementation(libs.androidx.navigation.compose)
@@ -73,6 +74,7 @@ dependencies {
 
     // Supabase Kotlin SDK (BOM + Modules via Catalog)
     implementation(platform(libs.supabase.bom))
+    implementation(libs.androidx.ui.graphics)
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.auth)
     implementation(libs.supabase.functions)
