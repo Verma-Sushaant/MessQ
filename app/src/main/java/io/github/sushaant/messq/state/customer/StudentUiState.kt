@@ -14,6 +14,11 @@ data class StudentUiState(
     val availableSlots: List<SlotDto> = emptyList(),
     val menuItems: List<MenuItemEntity> = emptyList(),
 
+    // Student Plate Selection & AI Nutritional Recommendations
+    val selectedMenuItemIds: Set<String> = emptySet(),
+    val recommendedMenuItems: List<MenuItemEntity> = emptyList(),
+    val aiRecommendationSummary: String? = null,
+
     // AI Prediction & Crowd
     val latestAiPrediction: AiPredictionDto? = null,
 

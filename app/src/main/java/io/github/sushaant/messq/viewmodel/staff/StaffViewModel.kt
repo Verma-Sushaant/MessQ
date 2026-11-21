@@ -190,4 +190,44 @@ class StaffViewModel(
     fun clearMessages() {
         _uiState.update { it.copy(errorMessage = null, successMessage = null) }
     }
+
+    fun saveMenuWithAiNutrition(
+        existingId: String? = null,
+        name: String,
+        category: String,
+        description: String?,
+        isAvailable: Boolean = true
+    ) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            when (
+                val res = menuRepository.saveMenuItemWithAiNutrition(
+                    existingId = existingId,
+                    name = name,
+                    category = category,
+                    description = description,
+                    isAvailable = isAvailable
+                )
+            ) {
+                is Resource.Success -> {
+                    val verb = if (existingId != null) "updated" else "added"
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            successMessage = "$name $verb with AI nutrition estimates"
+                        )
+                    }
+                }
+                is Resource.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = res.exception.localizedMessage ?: "Failed to save menu item"
+                        )
+                    }
+                }
+                Resource.Loading -> Unit
+            }
+        }
+    }
 }
