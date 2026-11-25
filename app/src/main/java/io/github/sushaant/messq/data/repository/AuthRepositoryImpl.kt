@@ -75,7 +75,7 @@ class AuthRepositoryImpl(
 
             SupabaseClientInstance.client
                 .from("profiles")
-                .insert(
+                .upsert(
                     ProfileInsertDto(
                         id = userId,
                         full_name = fullName,

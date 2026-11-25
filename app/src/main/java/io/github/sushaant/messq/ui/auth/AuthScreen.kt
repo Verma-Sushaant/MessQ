@@ -22,7 +22,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.github.sushaant.messq.state.AuthUiState
+import io.github.sushaant.messq.ui.theme.CorsivaBoldItalic
 import io.github.sushaant.messq.ui.theme.MessQTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,8 +78,9 @@ fun AuthScreen(
             // App Header
             Text(
                 text = "MessQ",
-                style = MaterialTheme.typography.headlineLarge,
+                style = CorsivaBoldItalic,
                 fontWeight = FontWeight.Bold,
+                fontSize = 42.sp,
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(6.dp))
