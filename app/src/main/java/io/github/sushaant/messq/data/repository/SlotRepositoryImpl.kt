@@ -105,4 +105,56 @@ class SlotRepositoryImpl : SlotRepository {
             result
         }
     }
+
+    override suspend fun generateHourlySlots(
+        startTime: String,
+        endTime: String,
+        maxCapacity: Int,
+        mealType: String?,
+        slotDate: String?
+    ): Resource<Int> {
+        return safeApiCall {
+            @Serializable
+            data class GenerateSlotsParams(
+                val p_start_time: String,
+                val p_end_time: String,
+                val p_max_capacity: Int,
+                val p_meal_type: String? = null,
+                val p_slot_date: String? = null
+            )
+
+            SupabaseClientInstance.client
+                .postgrest
+                .rpc(
+                    function = "generate_hourly_slots",
+                    parameters = GenerateSlotsParams(
+                        p_start_time = startTime,
+                        p_end_time = endTime,
+                        p_max_capacity = maxCapacity,
+                        p_meal_type = mealType?.takeIf { it.isNotBlank() },
+                        p_slot_date = slotDate
+                    )
+                )
+                .decodeAs<Int>()
+        }
+    }
+
+    override suspend fun getWalkInCountsForDate(date: String): Resource<Map<String, Int>> {
+        return safeApiCall {
+            @Serializable
+            data class WalkInRow(val slot_time: String)
+
+            val rows = SupabaseClientInstance.client
+                .from("slot_bookings")
+                .select {
+                    filter {
+                        eq("slot_date", date)
+                        eq("status", "WALK_IN")
+                    }
+                }
+                .decodeList<WalkInRow>()
+
+            rows.groupingBy { it.slot_time }.eachCount()
+        }
+    }
 }

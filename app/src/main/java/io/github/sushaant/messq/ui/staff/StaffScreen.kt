@@ -1,5 +1,7 @@
 package io.github.sushaant.messq.ui.staff
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +34,7 @@ import io.github.sushaant.messq.state.staff.StaffUiState
 import io.github.sushaant.messq.ui.theme.MessQTheme
 import io.github.sushaant.messq.ui.theme.MonotypeCorsiva
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StaffScreen(
@@ -40,6 +43,7 @@ fun StaffScreen(
     onResetAutoSlot: () -> Unit,
     onUpdateSlotConfig: (slot: SlotDto, maxCap: Int, startTime: String, endTime: String) -> Unit,
     onSaveMenuItem: (existingId: String?, name: String, category: String, description: String?) -> Unit,
+    onGenerateHourlySlots: (startHhMm: String, endHhMm: String, maxCapacity: Int, mealType: String?) -> Unit,
     onRefreshData: () -> Unit,
     onClearMessages: () -> Unit,
     onLogout: () -> Unit
@@ -221,6 +225,7 @@ fun StaffScreen(
                     onSelectSlotForQr = onSelectSlotForQr,
                     onResetAutoSlot = onResetAutoSlot,
                     onUpdateSlotConfig = onUpdateSlotConfig,
+                    onGenerateHourlySlots = onGenerateHourlySlots,
                     onSaveMenuItem = onSaveMenuItem
                 )
             }
@@ -228,6 +233,7 @@ fun StaffScreen(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview(showBackground = true)
 fun ShowStaffScreen() {
@@ -241,6 +247,7 @@ fun ShowStaffScreen() {
             onResetAutoSlot = {},
             onUpdateSlotConfig = { _, _, _, _ -> },
             onSaveMenuItem = { _, _, _, _ -> },
+            onGenerateHourlySlots = { _, _, _, _ -> },
             onRefreshData = {},
             onClearMessages = {},
             onLogout = {}

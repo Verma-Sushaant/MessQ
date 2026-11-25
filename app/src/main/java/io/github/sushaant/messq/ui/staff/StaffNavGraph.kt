@@ -1,5 +1,7 @@
 package io.github.sushaant.messq.ui.staff
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -15,9 +17,10 @@ sealed class StaffRoute(val route: String) {
     object GateQr : StaffRoute("staff_qr")
     object Slots : StaffRoute("staff_slots")
     object Crowd : StaffRoute("staff_crowd")
-    object Menu: StaffRoute("staff_menu")
+    object Menu : StaffRoute("staff_menu")
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun StaffNavGraph(
     navController: NavHostController,
@@ -25,6 +28,7 @@ fun StaffNavGraph(
     onSelectSlotForQr: (SlotDto) -> Unit,
     onResetAutoSlot: () -> Unit,
     onUpdateSlotConfig: (slot: SlotDto, maxCap: Int, startTime: String, endTime: String) -> Unit,
+    onGenerateHourlySlots: (startHhMm: String, endHhMm: String, maxCapacity: Int, mealType: String?) -> Unit,
     onSaveMenuItem: (existingId: String?, name: String, category: String, description: String?) -> Unit
 ) {
     NavHost(
@@ -41,7 +45,9 @@ fun StaffNavGraph(
         composable(StaffRoute.Slots.route) {
             StaffSlotsTab(
                 slots = uiState.todaySlots,
-                onUpdateSlot = onUpdateSlotConfig
+                walkInCountsBySlotTime = uiState.walkInCountsBySlotTime,
+                onUpdateSlot = onUpdateSlotConfig,
+                onGenerateHourlySlots = onGenerateHourlySlots
             )
         }
         composable(StaffRoute.Crowd.route) {

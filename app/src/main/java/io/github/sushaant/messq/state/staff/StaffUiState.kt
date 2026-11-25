@@ -14,6 +14,7 @@ data class StaffUiState(
     val todaySlots: List<SlotDto> = emptyList(),
     val selectedSlotForQr: SlotDto? = null,
     val gateQrPayload: String? = null,
+    val walkInCountsBySlotTime: Map<String, Int> = emptyMap(),
 
     // Live Telemetry & AI Insights
     val crowdRecords: List<CrowdRecordDto> = emptyList(),

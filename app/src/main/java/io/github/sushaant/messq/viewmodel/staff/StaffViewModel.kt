@@ -90,6 +90,11 @@ class StaffViewModel(
                 else -> Unit
             }
 
+            when (val walkInRes = slotRepository.getWalkInCountsForDate(date)) {
+                is Resource.Success -> _uiState.update { it.copy(walkInCountsBySlotTime = walkInRes.data) }
+                else -> Unit
+            }
+
             menuRepository.refreshMenusFromCloud()
             viewModelScope.launch {
                 menuRepository.getCachedMenus().collect { items ->
@@ -223,6 +228,49 @@ class StaffViewModel(
                         it.copy(
                             isLoading = false,
                             errorMessage = res.exception.localizedMessage ?: "Failed to save menu item"
+                        )
+                    }
+                }
+                Resource.Loading -> Unit
+            }
+        }
+    }
+
+    fun generateHourlySlots(
+        startTimeHhMm: String,
+        endTimeHhMm: String,
+        maxCapacity: Int,
+        mealType: String? = null
+    ) {
+        val date = LocalDate.now().toString()
+        val formattedStart = if (startTimeHhMm.trim().length == 5) "${startTimeHhMm.trim()}:00" else startTimeHhMm.trim()
+        val formattedEnd = if (endTimeHhMm.trim().length == 5) "${endTimeHhMm.trim()}:00" else endTimeHhMm.trim()
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            when (
+                val res = slotRepository.generateHourlySlots(
+                    startTime = formattedStart,
+                    endTime = formattedEnd,
+                    maxCapacity = maxCapacity,
+                    mealType = mealType,
+                    slotDate = date
+                )
+            ) {
+                is Resource.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            successMessage = "Generated ${res.data} 1-hour slots for today"
+                        )
+                    }
+                    loadStaffDashboardData(date)
+                }
+                is Resource.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = res.exception.localizedMessage ?: "Failed to generate slots"
                         )
                     }
                 }
